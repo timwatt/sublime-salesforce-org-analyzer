@@ -1,8 +1,15 @@
-import sublime, sublime_plugin, sys, os
+import sublime, sublime_plugin, sys, os, zipfile
 from xml.dom.minidom import parseString
 
 def runAnt(self,target):
-	self.build_file = os.path.dirname(os.path.realpath(__file__)) + "!" + os.path.join("salesforce-org-analyzer", "build.xml")
+	self.build_file =os.path.join(sublime.packages_path(), "SalesforceOrgAnalyzer", "salesforce-org-analyzer", "build.xml")
+	
+	if os.path.isfile(self.build_file) == False:
+		fh = open(os.path.dirname(os.path.realpath(__file__)), 'rb')
+		z = zipfile.ZipFile(fh)
+		z.extract("salesforce-org-analyzer/build.xml", self.build_file)
+		fh.close()
+
 	print("Selected target: " + target)
 
 	build_system = "ant"
