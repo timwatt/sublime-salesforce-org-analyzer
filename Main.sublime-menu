@@ -1,0 +1,29 @@
+[
+{
+    "id" : "sfOrgAnalyzer",
+    "caption" : "Salesforce Org Analyzer",
+    "children" : 
+    [
+    {
+    	"caption" : "Generate Documentation",
+    	"command" : "generate_doc"
+    	}
+,
+
+ {
+    	"caption" : "Security Audit",
+    	"command" : "security_audit"
+    	}
+,
+
+ {
+    	"caption" : "Health Check",
+    	"command" : "health_check"
+},
+
+ {
+        "caption" : "Reload Metadata",
+        "command" : "reload_metadata"
+        }]
+}
+]

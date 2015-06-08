@@ -1,0 +1,156 @@
+<project basedir="." default="security-audit" name="Salesforce Org Analyzer">
+	<import file="${basedir}/lib/junitpdfreport_essentials_1_0/build-junitpdfreport.xml"/>
+	<taskdef classname="com.sardak.antform.AntForm" classpath="${basedir}/lib/antform.jar" name="antform"/>
+	<taskdef classname="com.sardak.antform.AntMenu" classpath="${basedir}/lib/antform.jar" name="antmenu"/>
+	<taskdef classpath="${basedir}/lib/ant-contrib-1.0b3.jar" resource="net/sf/antcontrib/antlib.xml"/>
+	<taskdef classname="org.jruby.ant.Rake" classpath="${basedir}/lib/jruby-and-gems.jar" name="rake"/>
+
+	<target name="load-properties">
+		<available file="${user.dir}/org.properties" property="properties.present"/>		
+
+		<if>
+			<or>
+				<isfalse value="${properties.present}"/>
+				<isset property="config"/>
+			</or>
+			<then>
+				<antform title="Org Properties">
+					<label>Enter the org properties</label>
+					<textProperty label="Client Name : " property="client_name" required="true"/>
+					<textProperty label="User Name : " property="user_name" required="true"/>
+					<textProperty label="Password : " password="true" property="password" required="true"/>
+					<textProperty label="Security Token : " property="security_token"/>
+					<booleanProperty label="Is Sandbox? : " property="is_sandbox"/>
+					<controlbar>
+						<!-- <button label="Cancel" type="cancel"/>-->
+						<button label="Save" type="ok"/>
+					</controlbar>
+				</antform>
+				<propertyfile file="${user.dir}/org.properties">
+					<entry key="client_name" value="${client_name}"/>
+					<entry key="user_name" value="${user_name}"/>
+					<entry key="password" value="${password}"/>
+					<entry key="security_token" value="${security_token}"/>
+					<entry key="is_sandbox" value="${is_sandbox}"/>
+				</propertyfile>
+			</then>
+			<else>
+				<loadproperties srcFile="${user.dir}/org.properties"/>
+			</else>
+		</if>
+	</target>
+	<target name="install-gem">
+		<java classname="org.jruby.Main" classpath="${basedir}/lib/jruby-and-gems.jar" failonerror="true" fork="true">
+			<arg value="-S"/>
+			<arg value="gem"/>
+			<arg value="install"/>
+			<arg value="-i"/>
+			<arg value="${basedir}/lib/gems"/>
+			<arg value="${gem.to.install}"/>
+			<arg value="--no-ri"/>
+			<arg value="--no-rdoc"/>
+			<arg value="--env-shebang"/>
+		</java>
+	</target>
+	<target description="update the installed gems" name="update-gems">
+		<!-- this updates the gems on the system -->
+		<java classname="org.jruby.Main" classpath="${basedir}/lib/jruby-and-gems.jar" failonerror="true" fork="true">
+			<env key="GEM_PATH" value="${basedir}/lib/gems"/>
+			<env key="GEM_HOME" value="${basedir}/lib/gems"/>
+			<arg value="-S"/>
+			<arg value="gem"/>
+			<arg value="update"/>
+		</java>
+		<!-- this removes any obsoleted / previous version of all gems -->
+		<java classname="org.jruby.Main" classpath="${basedir}/lib/jruby-and-gems.jar" failonerror="true" fork="true">
+			<env key="GEM_PATH" value="${basedir}/lib/gems"/>
+			<env key="GEM_HOME" value="${basedir}/lib/gems"/>
+			<arg value="-S"/>
+			<arg value="gem"/>
+			<arg value="cleanup"/>
+		</java>
+	</target>
+	<!--       TASKS  -->
+
+	<target depends="load-properties" name="generate-metadata">
+		<rake task="generate_metadata"  file="${basedir}/RakeFile"/>
+	</target>
+
+	<target depends="load-properties" name="generate-doc" description="Generate config workbook">
+		<rake task="generate_doc" file="${basedir}/RakeFile"/>
+	</target>
+
+	<target description="Runs security audit scripts" name="security-audit">
+		<property name="tags" value="@security"/>
+		<property name="output_directory" value="security-audit"/>
+		<antcall target="cucumber"/>
+	</target>
+
+	<target  description="Run health check scripts" name="health-check">
+		<property name="tags" value="@healthcheck"/>
+		<property name="output_directory" value="health-check"/>
+		<antcall target="cucumber"/>
+	</target>
+
+	<target depends="load-properties" name="cucumber">
+		 <copy todir="${user.dir}/tests">
+			<fileset dir="${basedir}/features"/>
+		</copy>
+		<trycatch>
+			<try>
+				<java classname="org.jruby.Main" classpath="lib/jruby-and-gems.jar" failonerror="true" fork="true">
+					<arg value="-S"/>
+					<arg value="${basedir}/lib/gems/bin/cucumber"/>
+					<arg value="--tags"/>
+					<arg value="${tags}"/>
+					<!--   <arg value="Cucumber::Formatter::HtmlCS"/>-->
+					<arg value="--out"/>
+ 					<arg value="${user.dir}/outputs/${output_directory}/results.txt"/>
+					<arg value="user_name=${user_name}"/>
+					<arg value="password=${password}"/>
+					<arg value="security_token=${security_token}"/>
+					<arg value="is_sandbox=${is_sandbox}"/>
+					<arg value="src_path=${user.dir}/outputs/src/"/>
+					<arg value="${user.dir}/tests"/>
+				</java>
+			</try>
+			<catch/>
+		</trycatch>
+		<trycatch>
+			<try>
+				<java classname="org.jruby.Main" classpath="lib/jruby-and-gems.jar" failonerror="true" fork="true">
+					<arg value="-S"/>
+					<arg value="${basedir}/lib/gems/bin/cucumber"/>
+					<arg value="--tags"/>
+					<arg value="${tags}"/>
+					<arg value="--format"/>
+					<arg value="junit"/>
+					<!--   <arg value="Cucumber::Formatter::HtmlCS"/>-->
+					<arg value="--out"/>
+					 <arg value="${user.dir}/outputs/${output_directory}/"/>
+					<arg value="user_name=${user_name}"/>
+					<arg value="password=${password}"/>
+					<arg value="security_token=${security_token}"/>
+					<arg value="is_sandbox=${is_sandbox}"/>
+					<arg value="src_path=${user.dir}/outputs/src/"/>
+					<arg value="${user.dir}/tests"/>
+				</java>
+			</try>
+			<catch/>
+		</trycatch>
+
+		<junitreport todir="${user.dir}/outputs/${output_directory}/">
+			<fileset dir="${user.dir}/outputs/${output_directory}/">
+				<include name="TEST-*.xml"/>
+			</fileset>
+			<report format="noframes" todir="${user.dir}/outputs/${output_directory}/html">
+				<param expression="${client_name} Results" name="TITLE"/>
+			</report>
+		</junitreport>
+		<junitpdfreport styledir="default" todir="${user.dir}/outputs/${output_directory}/">
+			<fileset dir="${user.dir}/outputs/${output_directory}/">
+				<include name="TEST-*.xml"/>
+			</fileset>
+		</junitpdfreport>
+	</target>
+</project>

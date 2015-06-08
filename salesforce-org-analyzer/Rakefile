@@ -1,0 +1,47 @@
+require 'ant'
+require 'active_support'
+require 'cucumber'
+require 'cucumber/rake/task'
+require "sfdocumenter"
+require "sfmetadata"
+
+task default: %w[test]
+
+Cucumber::Rake::Task.new(:security_audit) do |t|
+	ant do
+		build_dir = "." 
+		#t.cucumber_opts = "--format Cucumber::Formatter::HtmlCS --out security-audit-results.html  user_name=#{properties["user_name"]} password=#{properties["password"]} src_path=#{properties["basedir"] + '/src'}"
+    end
+end   
+
+
+task :generate_doc do
+  	ant do
+     	build_dir = "." 
+		  doc = SfDocumenter::DocumentGenerator.new properties["user_name"], properties["password"] + properties["security_token"], properties["is_sandbox"], "#{properties["user.dir"]}/outputs/src"
+   		doc.save_document_to_file "#{properties["user.dir"]}/outputs/#{properties["client_name"]}_ConfigWorkbook.pdf"
+     end
+end
+
+task :generate_metadata do
+	
+  	ant do
+     	build_dir = "." 
+		md = SfMetadata::Client.new
+		md.load_from_org_or_file(properties["user_name"], properties["password"] + properties["security_token"], properties["is_sandbox"], "#{properties["user.dir"]}/outputs/src", nil,nil,false)    
+    end
+end
+
+
+task :test do
+	
+  	ant do
+     	build_dir = "." 
+  		md = SfMetadata::Client.new
+  		md.load_from_org_or_file(properties["user_name"], properties["password"] + properties["security_token"], properties["is_sandbox"], "#{properties["user.dir"]}/outputs/src")    
+      apex =  md.get_apex_classes.values.first
+     # puts apex.inspect
+      puts apex.name 
+      puts apex.methods
+    end
+end
