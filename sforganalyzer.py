@@ -2,8 +2,12 @@ import sublime, sublime_plugin, sys, os, zipfile
 from xml.dom.minidom import parseString
 
 def runAnt(self,target):
-	self.build_file =os.path.join(sublime.packages_path(), "SalesforceOrgAnalyzer", "salesforce-org-analyzer", "build.xml")
+	directory = os.path.join(sublime.packages_path(), "SalesforceOrgAnalyzer", "salesforce-org-analyzer")
+	self.build_file =os.path.join(directory, "build.xml")
 	
+	if not os.path.exists(directory):
+    	os.makedirs(directory)
+
 	if os.path.isfile(self.build_file) == False:
 		fh = open(os.path.dirname(os.path.realpath(__file__)), 'rb')
 		z = zipfile.ZipFile(fh)
