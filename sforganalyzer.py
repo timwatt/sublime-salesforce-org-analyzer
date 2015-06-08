@@ -2,7 +2,7 @@ import sublime, sublime_plugin, sys, os
 from xml.dom.minidom import parseString
 
 def runAnt(self,target):
-	self.build_file = os.path.join(sublime.packages_path(), "SalesforceOrgAnalyzer", "salesforce-org-analyzer", "build.xml")
+	self.build_file = os.path.join(os.path.dirname(os.path.realpath(__file__)),  "salesforce-org-analyzer", "build.xml")
 	print("Selected target: " + target)
 
 	build_system = "ant"
