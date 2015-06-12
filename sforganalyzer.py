@@ -2,17 +2,16 @@ import sublime, sublime_plugin, sys, os, zipfile
 from xml.dom.minidom import parseString
 
 def runAnt(self,target):
-	directory = os.path.join(sublime.packages_path(), "SalesforceOrgAnalyzer", "salesforce-org-analyzer")
+	directory = os.path.join(sublime.packages_path(), "sublime-salesforce-org-analyzer", "salesforce-org-analyzer")
 	self.build_file =os.path.join(directory, "build.xml")
 
 	if not os.path.exists(directory):
 		os.makedirs(directory)
-
-	if os.path.isfile(self.build_file) == False:
-		fh = open(os.path.dirname(os.path.realpath(__file__)), 'rb')
-		z = zipfile.ZipFile(fh)
-		z.extract("salesforce-org-analyzer/build.xml", self.build_file)
-		fh.close()
+		if os.path.splitext(__file__)[1] == 'sublime-package':
+			fh = open(os.path.dirname(os.path.realpath(__file__)), 'rb')
+			z = zipfile.ZipFile(fh)
+			z.extractAll(directory)
+			fh.close()
 
 	print("Selected target: " + target)
 
