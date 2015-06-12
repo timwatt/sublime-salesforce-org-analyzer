@@ -6,7 +6,7 @@ def runAnt(self,target):
 	self.build_file =os.path.join(directory, "build.xml")
 
 	if not os.path.exists(directory):
-		console.log(os.path.splitext(__file__)[1])
+		sys.stdout.write(os.path.splitext(__file__)[1])
 		if os.path.splitext(__file__)[1] == 'sublime-package':
 			fh = open(os.path.dirname(os.path.realpath(__file__)), 'rb')
 			z = zipfile.ZipFile(fh)
