@@ -2,8 +2,8 @@ import sublime, sublime_plugin, sys, os, zipfile
 from xml.dom.minidom import parseString
 
 def runAnt(self,target):
-	directory = os.path.join(sublime.packages_path(), "sublime-salesforce-org-analyzer", "salesforce-org-analyzer")
-	self.build_file =os.path.join(directory, "build.xml")
+	directory = os.path.join(sublime.packages_path(), "sublime-salesforce-org-analyzer")
+	self.build_file =os.path.join(directory,"salesforce-org-analyzer", "build.xml")
 
 	if not os.path.exists(directory):
 		if '.sublime-package' in os.path.dirname(os.path.realpath(__file__)):
