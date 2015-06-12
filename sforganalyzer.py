@@ -7,10 +7,8 @@ def runAnt(self,target):
 
 	if not os.path.exists(directory):
 		if '.sublime-package' in os.path.dirname(os.path.realpath(__file__)):
-			fh = open(os.path.dirname(os.path.realpath(__file__)), 'rb')
-			z = zipfile.ZipFile(fh)
-			z.extractAll(directory)
-			fh.close()
+			with zipfile.ZipFile(os.path.dirname(os.path.realpath(__file__)), 'r') as z:
+				z.extractAll(directory)
 
 	print("Selected target: " + target)
 
